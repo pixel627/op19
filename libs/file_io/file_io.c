@@ -6,6 +6,13 @@
 
 char _fileReadBuffer[MAX_LINE_SIZE];
 
+int compareInts(const void *intPtr1, const void *intPtr2) {
+    int *num1 = (int *)intPtr1;
+    int *num2 = (int *)intPtr2;
+
+    return *num2 - *num1;
+}
+
 size_t readFileToBuff(char *filePath, char *buff, size_t buffSize) {
     FILE *f = fopen(filePath, "r");
     size_t size = fread(buff, sizeof(char), buffSize, f);
@@ -14,6 +21,15 @@ size_t readFileToBuff(char *filePath, char *buff, size_t buffSize) {
     buff[size] = '\0';
     return size;
 }
+
+size_t readFileBinaryToBuff(char *filePath, char *buff, size_t buffSize) {
+    FILE *f = fopen(filePath, "rb");
+    size_t size = fread(buff, sizeof(char), buffSize, f);
+    fclose(f);
+
+    return size;
+}
+
 
 void rowsToColumnsInMatrix(char *filePath) {
     FILE *fp = fopen(filePath, "r");
@@ -242,4 +258,32 @@ size_t saveFileWithLongestWord(char *file_path_in, char *file_path_out) {
     fclose(fd);
 
     return counter;
+}
+//
+
+void binFileSort(char *filePath) {
+    FILE *fp = fopen(filePath, "r+b");
+
+    if (fp == NULL) {
+        fprintf(stderr, "file cannot be opened");
+        exit(1);
+    }
+
+    int array[1000];
+    int *ptr = array;
+
+    int count = 0;
+    while (fread(ptr, sizeof(int), 1, fp) > 0) {
+        ptr++;
+        count++;
+    }
+
+    qsort(array, count, sizeof(int), compareInts);
+
+    fseek(fp, 0, SEEK_SET);
+    ptr = array;
+    for (int i = 0; i < count; i++) {
+        fwrite(ptr++, sizeof(int), 1, fp);
+    }
+    fclose(fp);
 }
